@@ -4,6 +4,8 @@ namespace app\admin\controller\general;
 
 use app\admin\model\Admin;
 use app\common\controller\Backend;
+use app\common\service\util\GoogleAuthenticator;
+use Endroid\QrCode\QrCode;
 use fast\Random;
 use think\Session;
 use think\Validate;
@@ -38,6 +40,28 @@ class Profile extends Backend
             $result = array("total" => $list->total(), "rows" => $list->items());
 
             return json($result);
+        }
+        // 谷歌验证器状态（未绑定时生成新密钥暂存Session，供页面展示）
+        $admin = Admin::get($this->auth->id);
+        $gaBound = !empty($admin->google_secret);
+        $this->view->assign('gaBound', $gaBound);
+        if (!$gaBound) {
+            $googleAuth = new GoogleAuthenticator();
+            $secret = Session::get('admin_ga_new_secret');
+            if (!$secret) {
+                $secret = $googleAuth->createSecret();
+                Session::set('admin_ga_new_secret', $secret);
+            }
+            $gaUrl = $googleAuth->getQRCodeGoogleUrl($this->auth->username, $secret);
+            $this->view->assign('gaSecret', $secret);
+            $this->view->assign('gaUrl', $gaUrl);
+            // 生成二维码（otpauth 链接 → PNG base64，供扫码绑定）
+            try {
+                $qr = new QrCode($gaUrl);
+                $this->view->assign('gaQr', 'data:image/png;base64,' . base64_encode($qr->writeString()));
+            } catch (\Exception $e) {
+                $this->view->assign('gaQr', '');
+            }
         }
         return $this->view->fetch();
     }
@@ -80,5 +104,52 @@ class Profile extends Backend
             $this->error();
         }
         return;
+    }
+
+    /**
+     * 谷歌验证器绑定/解绑
+     */
+    public function google()
+    {
+        if ($this->request->isPost()) {
+            $this->token();
+            $action = $this->request->post('action', 'bind');
+            $code = $this->request->post('code', '', 'trim');
+            $googleAuth = new GoogleAuthenticator();
+            $admin = Admin::get($this->auth->id);
+            if (!$admin) {
+                $this->error(__('Admin not found'));
+            }
+            if ($action == 'unbind') {
+                // 解绑需校验当前动态码，防止误操作
+                if ($admin->google_secret && $googleAuth->verifyCode($admin->google_secret, $code)) {
+                    $result = $admin->save(['google_secret' => '']);
+                    if ($result === false) {
+                        $this->error(__('Unbind failed, please try again'));
+                    }
+                    Session::set("admin", $admin->toArray());
+                    Session::set("admin.safecode", $this->auth->getEncryptSafecode($admin));
+                    $this->success(__('Unbind successful'));
+                }
+                $this->error(__('Verification code error'));
+            }
+            // 绑定：校验用户 App 中显示的动态码与暂存密钥一致
+            $secret = Session::get('admin_ga_new_secret');
+            if (!$secret) {
+                $this->error(__('Please refresh the page to get the secret key'));
+            }
+            if ($googleAuth->verifyCode($secret, $code)) {
+                $result = $admin->save(['google_secret' => $secret]);
+                if ($result === false) {
+                    $this->error(__('Bind failed, please try again'));
+                }
+                Session::delete('admin_ga_new_secret');
+                Session::set("admin", $admin->toArray());
+                Session::set("admin.safecode", $this->auth->getEncryptSafecode($admin));
+                $this->success(__('Bind successful'));
+            }
+            $this->error(__('Verification code error'));
+        }
+        $this->error(__('Invalid request'));
     }
 }

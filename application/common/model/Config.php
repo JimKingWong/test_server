@@ -198,6 +198,12 @@ class Config extends Model
 
     /**
      * 刷新配置文件
+     *
+     * 按配置分组写入对应的配置文件：
+     *   basic      -> application/extra/site.php
+     *   email      -> application/extra/email.php
+     *   dictionary -> application/extra/dictionary.php
+     *   其他分组   -> application/extra/{group}.php
      */
     public static function refreshFile()
     {
@@ -205,7 +211,8 @@ class Config extends Model
         if (!\app\admin\library\Auth::instance()->check('general/config/edit')) {
             return false;
         }
-        $config = [];
+        // 按分组收集配置项
+        $groups = [];
         $configList = self::all();
         foreach ($configList as $k => $v) {
             $value = $v->toArray();
@@ -215,12 +222,16 @@ class Config extends Model
             if ($value['type'] == 'array') {
                 $value['value'] = (array)json_decode($value['value'], true);
             }
-            $config[$value['name']] = $value['value'];
+            $groups[$value['group']][$value['name']] = $value['value'];
         }
-        file_put_contents(
-            CONF_PATH . 'extra' . DS . 'site.php',
-            '<?php' . "\n\nreturn " . var_export($config, true) . ";\n"
-        );
+        // basic 分组写入 site.php，其余分组写入对应的 {group}.php
+        foreach ($groups as $group => $config) {
+            $filename = $group == 'basic' ? 'site.php' : $group . '.php';
+            file_put_contents(
+                CONF_PATH . 'extra' . DS . $filename,
+                '<?php' . "\n\nreturn " . var_export_short($config, true) . ";\n"
+            );
+        }
         return true;
     }
 

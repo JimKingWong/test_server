@@ -51,6 +51,27 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form', 'upload'], function (
                 top.window.$(".user-panel .image img,.user-menu > a > img,.user-header > img").prop("src", url);
                 return true;
             });
+
+            // 复制密钥
+            $("#ga-copy").on("click", function () {
+                var input = document.getElementById("ga-secret");
+                input.select();
+                try {
+                    document.execCommand("copy");
+                } catch (e) {
+                }
+                Toastr.success(__('Copied'));
+            });
+
+            // 谷歌验证器绑定/解绑表单：成功后刷新页面展示最新状态
+            Form.api.bindevent($("#ga-bind-form"), function (data, ret) {
+                location.reload();
+                return false;
+            });
+            Form.api.bindevent($("#ga-unbind-form"), function (data, ret) {
+                location.reload();
+                return false;
+            });
         },
     };
     return Controller;

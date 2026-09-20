@@ -273,9 +273,9 @@ class Install extends Command
         //修改站点名称
         if ($siteName != config('site.name')) {
             $instance->name('config')->where('name', 'name')->update(['value' => $siteName]);
-            $siteConfigFile = CONF_PATH . 'extra' . DS . 'site.php';
-            $siteConfig = include $siteConfigFile;
             $configList = $instance->name("config")->select();
+            // 按配置分组收集配置项
+            $groups = [];
             foreach ($configList as $k => $value) {
                 if (in_array($value['type'], ['selects', 'checkbox', 'images', 'files'])) {
                     $value['value'] = is_array($value['value']) ? $value['value'] : explode(',', $value['value']);
@@ -283,10 +283,16 @@ class Install extends Command
                 if ($value['type'] == 'array') {
                     $value['value'] = (array)json_decode($value['value'], true);
                 }
-                $siteConfig[$value['name']] = $value['value'];
+                $groups[$value['group']][$value['name']] = $value['value'];
             }
-            $siteConfig['name'] = $siteName;
-            file_put_contents($siteConfigFile, '<?php' . "\n\nreturn " . var_export_short($siteConfig) . ";\n");
+            // basic 分组写入 site.php，其余分组写入对应的 {group}.php
+            foreach ($groups as $group => $groupConfig) {
+                if ($group == 'basic') {
+                    $groupConfig['name'] = $siteName;
+                }
+                $filename = $group == 'basic' ? 'site.php' : $group . '.php';
+                file_put_contents(CONF_PATH . 'extra' . DS . $filename, '<?php' . "\n\nreturn " . var_export_short($groupConfig) . ";\n");
+            }
         }
 
         $installLockFile = INSTALL_PATH . "install.lock";

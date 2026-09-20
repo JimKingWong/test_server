@@ -4,6 +4,7 @@ namespace app\admin\controller;
 
 use app\admin\model\AdminLog;
 use app\common\controller\Backend;
+use app\common\service\util\GoogleAuthenticator;
 use think\Config;
 use think\Hook;
 use think\Session;
@@ -100,6 +101,22 @@ class Index extends Backend
             $result = $this->auth->login($username, $password, $keeplogin ? $keeyloginhours * 3600 : 0);
             if ($result === true) {
                 Hook::listen("admin_login_after", $this->request);
+                // 谷歌验证器：系统已启用且该管理员已绑定密钥时，登录必须输入动态验证码
+                $admin = \app\admin\model\Admin::get($this->auth->id);
+                if (config('site.google_auth') && $admin && $admin->google_secret) {
+                    $code = $this->request->post('code', '', 'trim');
+                    $googleAuth = new GoogleAuthenticator();
+                    if (!$code) {
+                        // 未填写验证码：安全登出并提示
+                        $this->auth->logout();
+                        $this->error(__('Please input the verification code'), $url, ['token' => $this->request->token()]);
+                    }
+                    if (!$googleAuth->verifyCode($admin->google_secret, $code)) {
+                        // 验证失败：安全登出并要求重新登录
+                        $this->auth->logout();
+                        $this->error(__('Verification code error'), $url, ['token' => $this->request->token()]);
+                    }
+                }
                 $this->success(__('Login successful'), $url, ['url' => $url, 'id' => $this->auth->id, 'username' => $username, 'avatar' => $this->auth->avatar]);
             } else {
                 $msg = $this->auth->getError();

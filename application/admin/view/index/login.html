@@ -112,6 +112,10 @@
                             <div class="input-group-addon"><span class="glyphicon glyphicon-lock" aria-hidden="true"></span></div>
                             <input type="password" class="form-control" id="pd-form-password" placeholder="{:__('Password')}" name="password" autocomplete="off" value="" data-rule="{:__('Password')}:required;password"/>
                         </div>
+                        <div class="input-group" id="ga-login-code-group">
+                            <div class="input-group-addon"><span class="glyphicon glyphicon-qrcode" aria-hidden="true"></span></div>
+                            <input type="text" class="form-control" id="ga-login-code" placeholder="{:__('Google verification code')}（{:__('已绑定谷歌验证器的管理员请填写')}）" name="code" autocomplete="off" maxlength="6" value="" data-rule="digits;length(6)"/>
+                        </div>
                         <!--@CaptchaBegin-->
                         {if $Think.config.fastadmin.login_captcha}
                         <div class="input-group">

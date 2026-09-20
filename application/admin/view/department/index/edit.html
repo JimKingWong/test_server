@@ -1,0 +1,65 @@
+
+<form id="add-form" class="form-horizontal" role="form" data-toggle="validator" method="POST" action="">
+    <div class="form-group">
+        <label for="parent_id" class="control-label col-xs-12 col-sm-2">{:__('Parent')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <select name="row[parent_id]" data-rule="required" id="parent_id" class="form-control">
+                <option value="0">{:__('None')}</option>
+                {foreach name="departmentList" item="vo"}
+                <option value="{$vo.id|htmlentities}" {in name="vo.id" value="$childrenIds"}disabled{/in}
+                {if $vo.id==$row.parent_id} selected{/if}>
+                {$vo.name|htmlentities}</option>
+                {/foreach}
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="c-name" class="control-label col-xs-12 col-sm-2">{:__('Name')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-name" data-rule="required" class="form-control" name="row[name]" type="text" value="{$row.name|htmlentities}" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="c-tags" class="control-label col-xs-12 col-sm-2">{:__('标签属性')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-tags" data-rule="" class="form-control" placeholder="输入后空格确认" name="row[tags]" type="text" value="{$row.tags|htmlentities}">
+            <span class="text-gray">输入后空格确认</span>
+        </div>
+    </div>
+
+    <div class="form-group tf tf-channel tf-list">
+        <label for="c-weigh" class="control-label col-xs-12 col-sm-2">{:__('weigh')}:</label>
+        <div class="col-xs-12 col-sm-4">
+            <input id="c-weigh" data-rule="required" class="form-control" name="row[weigh]" type="number" value="{$row.weigh|htmlentities}">
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Status')}:</label>
+        <div class="col-xs-12 col-sm-8">
+
+            <div class="radio">
+                {foreach name="statusList" item="vo"}
+                <label for="row[status]-{$key|htmlentities}">
+                    <input id="row[status]-{$key|htmlentities}" name="row[status]" type="radio" value="{$key|htmlentities}"
+                           {in name="key" value="$row.status"}checked{/in}
+                        /> {$vo|htmlentities}
+                </label>
+                {/foreach}
+            </div>
+
+        </div>
+    </div>
+    <div class="form-group layer-footer">
+        <label class="control-label col-xs-12 col-sm-2"></label>
+        <div class="col-xs-12 col-sm-8">
+            <button type="submit" class="btn btn-success btn-embossed disabled">{:__('OK')}</button>
+            <button type="reset" class="btn btn-default btn-embossed">{:__('Reset')}</button>
+        </div>
+    </div>
+</form>
+
+

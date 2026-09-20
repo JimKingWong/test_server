@@ -13,6 +13,24 @@ class Common
     {
         $allowLangList = Config::get('allow_lang_list') ?? ['zh-cn', 'en'];
         Lang::setAllowLangList($allowLangList);
+
+        // 将 extra 目录下的分组配置文件（email.php、dictionary.php 等，系统配置文件除外）
+        // 合并到 site 配置键，兼容原有 config('site.xxx') 的引用方式
+        $site = Config::get('site') ?: [];
+        foreach (glob(CONF_PATH . 'extra' . DS . '*.php') as $file) {
+            $name = pathinfo($file, PATHINFO_FILENAME);
+            // 跳过系统配置文件
+            if (in_array($name, ['site', 'addons', 'queue', 'upload'])) {
+                continue;
+            }
+            $groupConfig = (array)Config::get($name);
+            if ($groupConfig) {
+                $site = array_merge($site, $groupConfig);
+            }
+        }
+        if ($site) {
+            Config::set('site', $site);
+        }
     }
 
     public function appDispatch(&$dispatch)
