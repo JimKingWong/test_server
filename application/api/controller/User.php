@@ -22,7 +22,7 @@ class User extends Api
         parent::_initialize();
 
         if (!Config::get('fastadmin.usercenter')) {
-            $this->error(__('User center already closed'));
+            $this->error(__('会员中心已关闭'));
         }
 
     }
@@ -47,12 +47,12 @@ class User extends Api
         $account = $this->request->post('account');
         $password = $this->request->post('password');
         if (!$account || !$password) {
-            $this->error(__('Invalid parameters'));
+            $this->error(__('未知参数'));
         }
         $ret = $this->auth->login($account, $password);
         if ($ret) {
             $data = ['userinfo' => $this->auth->getUserinfo()];
-            $this->success(__('Logged in successful'), $data);
+            $this->success(__('登录成功'), $data);
         } else {
             $this->error($this->auth->getError());
         }
@@ -70,18 +70,18 @@ class User extends Api
         $mobile = $this->request->post('mobile');
         $captcha = $this->request->post('captcha');
         if (!$mobile || !$captcha) {
-            $this->error(__('Invalid parameters'));
+            $this->error(__('未知参数'));
         }
         if (!Validate::regex($mobile, "^1\d{10}$")) {
-            $this->error(__('Mobile is incorrect'));
+            $this->error(__('手机号不正确'));
         }
         if (!Sms::check($mobile, $captcha, 'mobilelogin', true)) {
-            $this->error(__('Captcha is incorrect'));
+            $this->error(__('验证码不正确'));
         }
         $user = \app\common\model\User::getByMobile($mobile);
         if ($user) {
             if ($user->status != 'normal') {
-                $this->error(__('Account is locked'));
+                $this->error(__('账号已被锁定'));
             }
             //如果已经有账号则直接登录
             $ret = $this->auth->direct($user->id);
@@ -91,7 +91,7 @@ class User extends Api
         if ($ret) {
             Sms::flush($mobile, 'mobilelogin');
             $data = ['userinfo' => $this->auth->getUserinfo()];
-            $this->success(__('Logged in successful'), $data);
+            $this->success(__('登录成功'), $data);
         } else {
             $this->error($this->auth->getError());
         }
@@ -115,23 +115,23 @@ class User extends Api
         $mobile = $this->request->post('mobile');
         $code = $this->request->post('code');
         if (!$username || !$password) {
-            $this->error(__('Invalid parameters'));
+            $this->error(__('未知参数'));
         }
         if ($email && !Validate::is($email, "email")) {
-            $this->error(__('Email is incorrect'));
+            $this->error(__('邮箱不正确'));
         }
         if ($mobile && !Validate::regex($mobile, "^1\d{10}$")) {
-            $this->error(__('Mobile is incorrect'));
+            $this->error(__('手机号不正确'));
         }
         $ret = Sms::check($mobile, $code, 'register', true);
         if (!$ret) {
-            $this->error(__('Captcha is incorrect'));
+            $this->error(__('验证码不正确'));
         }
         $ret = $this->auth->register($username, $password, $email, $mobile, []);
         if ($ret) {
             Sms::flush($mobile, 'register');
             $data = ['userinfo' => $this->auth->getUserinfo()];
-            $this->success(__('Sign up successful'), $data);
+            $this->success(__('注册成功'), $data);
         } else {
             $this->error($this->auth->getError());
         }
@@ -144,10 +144,10 @@ class User extends Api
     public function logout()
     {
         if (!$this->request->isPost()) {
-            $this->error(__('Invalid parameters'));
+            $this->error(__('未知参数'));
         }
         $this->auth->logout();
-        $this->success(__('Logout successful'));
+        $this->success(__('退出成功'));
     }
 
     /**
@@ -169,14 +169,14 @@ class User extends Api
         if ($username) {
             $exists = \app\common\model\User::where('username', $username)->where('id', '<>', $this->auth->id)->find();
             if ($exists) {
-                $this->error(__('Username already exists'));
+                $this->error(__('用户名已存在'));
             }
             $user->username = $username;
         }
         if ($nickname) {
             $exists = \app\common\model\User::where('nickname', $nickname)->where('id', '<>', $this->auth->id)->find();
             if ($exists) {
-                $this->error(__('Nickname already exists'));
+                $this->error(__('昵称已存在'));
             }
             $user->nickname = $nickname;
         }
@@ -206,17 +206,17 @@ class User extends Api
         $email = $this->request->post('email');
         $captcha = $this->request->post('captcha');
         if (!$email || !$captcha) {
-            $this->error(__('Invalid parameters'));
+            $this->error(__('未知参数'));
         }
         if (!Validate::is($email, "email")) {
-            $this->error(__('Email is incorrect'));
+            $this->error(__('邮箱不正确'));
         }
         if (\app\common\model\User::where('email', $email)->where('id', '<>', $user->id)->find()) {
-            $this->error(__('Email already exists'));
+            $this->error(__('邮箱已存在'));
         }
         $result = Ems::check($email, $captcha, 'changeemail', true);
         if (!$result) {
-            $this->error(__('Captcha is incorrect'));
+            $this->error(__('验证码不正确'));
         }
         $verification = $user->verification;
         $verification->email = 1;
@@ -241,17 +241,17 @@ class User extends Api
         $mobile = $this->request->post('mobile');
         $captcha = $this->request->post('captcha');
         if (!$mobile || !$captcha) {
-            $this->error(__('Invalid parameters'));
+            $this->error(__('未知参数'));
         }
         if (!Validate::regex($mobile, "^1\d{10}$")) {
-            $this->error(__('Mobile is incorrect'));
+            $this->error(__('手机号不正确'));
         }
         if (\app\common\model\User::where('mobile', $mobile)->where('id', '<>', $user->id)->find()) {
-            $this->error(__('Mobile already exists'));
+            $this->error(__('手机号已存在'));
         }
         $result = Sms::check($mobile, $captcha, 'changemobile', true);
         if (!$result) {
-            $this->error(__('Captcha is incorrect'));
+            $this->error(__('验证码不正确'));
         }
         $verification = $user->verification;
         $verification->mobile = 1;
@@ -277,7 +277,7 @@ class User extends Api
         $code = $this->request->post("code");
         $config = get_addon_config('third');
         if (!$config || !isset($config[$platform])) {
-            $this->error(__('Invalid parameters'));
+            $this->error(__('未知参数'));
         }
         $app = new \addons\third\library\Application($config);
         //通过code换access_token和绑定会员
@@ -289,10 +289,10 @@ class User extends Api
                     'userinfo'  => $this->auth->getUserinfo(),
                     'thirdinfo' => $result
                 ];
-                $this->success(__('Logged in successful'), $data);
+                $this->success(__('登录成功'), $data);
             }
         }
-        $this->error(__('Operation failed'), $url);
+        $this->error(__('操作失败!'), $url);
     }
 
     /**
@@ -311,36 +311,36 @@ class User extends Api
         $newpassword = $this->request->post("newpassword");
         $captcha = $this->request->post("captcha");
         if (!$newpassword || !$captcha) {
-            $this->error(__('Invalid parameters'));
+            $this->error(__('未知参数'));
         }
         //验证Token
         if (!Validate::make()->check(['newpassword' => $newpassword], ['newpassword' => 'require|regex:\S{6,30}'])) {
-            $this->error(__('Password must be 6 to 30 characters'));
+            $this->error(__('密码长度必须为6-30位'));
         }
         if ($type == 'mobile') {
             if (!Validate::regex($mobile, "^1\d{10}$")) {
-                $this->error(__('Mobile is incorrect'));
+                $this->error(__('手机号不正确'));
             }
             $user = \app\common\model\User::getByMobile($mobile);
             if (!$user) {
-                $this->error(__('User not found'));
+                $this->error(__('用户不存在'));
             }
             $ret = Sms::check($mobile, $captcha, 'resetpwd', true);
             if (!$ret) {
-                $this->error(__('Captcha is incorrect'));
+                $this->error(__('验证码不正确'));
             }
             Sms::flush($mobile, 'resetpwd');
         } else {
             if (!Validate::is($email, "email")) {
-                $this->error(__('Email is incorrect'));
+                $this->error(__('邮箱不正确'));
             }
             $user = \app\common\model\User::getByEmail($email);
             if (!$user) {
-                $this->error(__('User not found'));
+                $this->error(__('用户不存在'));
             }
             $ret = Ems::check($email, $captcha, 'resetpwd', true);
             if (!$ret) {
-                $this->error(__('Captcha is incorrect'));
+                $this->error(__('验证码不正确'));
             }
             Ems::flush($email, 'resetpwd');
         }
@@ -348,7 +348,7 @@ class User extends Api
         $this->auth->direct($user->id);
         $ret = $this->auth->changepwd($newpassword, '', true);
         if ($ret) {
-            $this->success(__('Reset password successful'));
+            $this->success(__('重置密码成功'));
         } else {
             $this->error($this->auth->getError());
         }

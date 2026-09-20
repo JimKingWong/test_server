@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit">
+    <meta name="referrer" content="never">
+    <title>新增语言包</title>
+    <link rel="shortcut icon" href="__CDN__/assets/img/favicon.ico"/>
+    <link href="__CDN__/assets/css/backend.css" rel="stylesheet"/>
+    <link href="__CDN__/assets/libs/fastadmin-layer/dist/theme/default/layer.css" rel="stylesheet"/>
+</head>
+<body class="hold-transition skin-blue sidebar-mini fixed">
+<div class="wrapper">
+    <div class="content-wrapper">
+        <section class="content-header">
+            <h1>{:__('新增语言包')}<small>{:__('新增 API 接口语言包')}</small></h1>
+        </section>
+        <section class="content">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">{:__('语言信息')}</h3>
+                        </div>
+                        <div class="box-body">
+                            <form id="add-form" class="form-horizontal" method="post" action="{:url('api/lang/add')}" data-toggle="validator" role="form">
+                                {:token()}
+                                <div class="form-group">
+                                    <label class="control-label col-xs-12 col-sm-2">{:__('语言代码')}:</label>
+                                    <div class="col-xs-12 col-sm-6">
+                                        <input type="text" class="form-control" id="code" name="code" placeholder="en / ja / ko / zh-cn ..." value="" data-rule="required"/>
+                                        <span class="help-block">{:__('仅支持字母和连字符，如 en、ja、zh-TW')}</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-xs-12 col-sm-2">{:__('创建方式')}:</label>
+                                    <div class="col-xs-12 col-sm-6">
+                                        <div class="radio">
+                                            <label><input type="radio" name="copy_zh" value="1" checked/> {:__('复制 zh-cn 模板（推荐，翻译值即可）')}</label>
+                                        </div>
+                                        <div class="radio">
+                                            <label><input type="radio" name="copy_zh" value="0"/> {:__('创建空语言包')}</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-xs-12 col-sm-2"></label>
+                                    <div class="col-xs-12 col-sm-6">
+                                        <button type="submit" class="btn btn-success btn-embossed">{:__('创建')}</button>
+                                        <a href="{:url('api/lang/index')}" class="btn btn-default btn-embossed">{:__('返回列表')}</a>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="box-footer">
+                            <p class="text-muted" style="margin:0;">
+                                <i class="fa fa-info-circle"></i> {:__('创建后需在 application/config.php 的 allow_lang_list 中添加该语言代码，客户端即可通过 ?lang=代码 或 Accept-Language 请求头切换')}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+<script src="__CDN__/assets/libs/jquery/dist/jquery.min.js"></script>
+<script src="__CDN__/assets/libs/fastadmin-layer/dist/layer.js"></script>
+<script type="text/javascript">
+    $(function () {
+        $("#add-form").on("submit", function (e) {
+            e.preventDefault();
+            var code = $.trim($("#code").val());
+            if (!code) {
+                layer.msg('{:__('请输入语言代码')}', {icon: 2});
+                return;
+            }
+            $.ajax({
+                url: "{:url('api/lang/add')}",
+                type: "POST",
+                data: $(this).serialize(),
+                dataType: "json",
+                success: function (ret) {
+                    if (ret.code === 1) {
+                        layer.msg(ret.msg, {icon: 1}, function () {
+                            location.href = "{:url('api/lang/edit', ['ids' => '__LANG__'])}".replace('__LANG__', ret.data.code);
+                        });
+                    } else {
+                        layer.msg(ret.msg, {icon: 2});
+                    }
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

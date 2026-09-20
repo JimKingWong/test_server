@@ -100,11 +100,11 @@ class Auth
         if ($user_id > 0) {
             $user = User::get($user_id);
             if (!$user) {
-                $this->setError('Account not exist');
+                $this->setError('账号不存在');
                 return false;
             }
             if ($user['status'] != 'normal') {
-                $this->setError('Account is locked');
+                $this->setError('账号已被锁定');
                 return false;
             }
             $this->_user = $user;
@@ -116,7 +116,7 @@ class Auth
 
             return true;
         } else {
-            $this->setError('You are not logged in');
+            $this->setError('您尚未登录');
             return false;
         }
     }
@@ -135,19 +135,19 @@ class Auth
     {
         // 检测用户名、昵称、邮箱、手机号是否存在
         if (User::getByUsername($username)) {
-            $this->setError('Username already exist');
+            $this->setError('用户名已存在');
             return false;
         }
         if (User::getByNickname($username)) {
-            $this->setError('Nickname already exist');
+            $this->setError('昵称已存在');
             return false;
         }
         if ($email && User::getByEmail($email)) {
-            $this->setError('Email already exist');
+            $this->setError('邮箱已存在');
             return false;
         }
         if ($mobile && User::getByMobile($mobile)) {
-            $this->setError('Mobile already exist');
+            $this->setError('手机号已存在');
             return false;
         }
 
@@ -213,23 +213,23 @@ class Auth
         $field = Validate::is($account, 'email') ? 'email' : (Validate::regex($account, '/^1\d{10}$/') ? 'mobile' : 'username');
         $user = User::get([$field => $account]);
         if (!$user) {
-            $this->setError('Account is incorrect');
+            $this->setError('账号或密码不正确');
             return false;
         }
 
         if ($user->status != 'normal') {
-            $this->setError('Account is locked');
+            $this->setError('账号已被锁定');
             return false;
         }
 
         if ($user->loginfailure >= 10 && time() - $user->loginfailuretime < 86400) {
-            $this->setError('Please try again after 1 day');
+            $this->setError('请1天后重试');
             return false;
         }
 
         if ($user->password != $this->getEncryptPassword($password, $user->salt)) {
             $user->save(['loginfailure' => $user->loginfailure + 1, 'loginfailuretime' => time()]);
-            $this->setError('Password is incorrect');
+            $this->setError('密码不正确');
             return false;
         }
 
@@ -245,7 +245,7 @@ class Auth
     public function logout()
     {
         if (!$this->_logined) {
-            $this->setError('You are not logged in');
+            $this->setError('您尚未登录');
             return false;
         }
         //设置登录标识
@@ -267,7 +267,7 @@ class Auth
     public function changepwd($newpassword, $oldpassword = '', $ignoreoldpassword = false)
     {
         if (!$this->_logined) {
-            $this->setError('You are not logged in');
+            $this->setError('您尚未登录');
             return false;
         }
         //判断旧密码是否正确
@@ -289,7 +289,7 @@ class Auth
             }
             return true;
         } else {
-            $this->setError('Password is incorrect');
+            $this->setError('密码不正确');
             return false;
         }
     }

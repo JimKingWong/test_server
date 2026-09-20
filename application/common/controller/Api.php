@@ -65,6 +65,13 @@ class Api
     protected $responseType = 'json';
 
     /**
+     * API 独立默认语言
+     * 与后台/全局 default_lang 解耦：后台切换默认语言不影响 API 返回语言
+     * @var string
+     */
+    protected $apiDefaultLang = 'zh-cn';
+
+    /**
      * 构造方法
      * @access public
      * @param Request $request Request 对象
@@ -122,13 +129,13 @@ class Api
             $this->auth->init($token);
             //检测是否登录
             if (!$this->auth->isLogin()) {
-                $this->error(__('Please login first'), null, 401);
+                $this->error(__('请登录后操作'), null, 401);
             }
             // 判断是否需要验证权限
             if (!$this->auth->match($this->noNeedRight)) {
                 // 判断控制器和方法判断是否有对应权限
                 if (!$this->auth->check($path)) {
-                    $this->error(__('You have no permission'), null, 403);
+                    $this->error(__('你没有权限访问'), null, 403);
                 }
             }
         } else {
@@ -191,7 +198,8 @@ class Api
             if (in_array($baseLang, $allowLang)) {
                 $lang = $baseLang;
             } else {
-                $lang = Config::get('default_lang') ?: 'zh-cn';
+                // 兜底使用 API 独立默认语言（不随后台 default_lang 变化）
+                $lang = $this->apiDefaultLang;
             }
         }
         Lang::range($lang);
@@ -362,7 +370,7 @@ class Api
 
         //验证Token
         if (!Validate::make()->check(['__token__' => $token], ['__token__' => 'require|token'])) {
-            $this->error(__('Token verification error'), ['__token__' => $this->request->token()]);
+            $this->error(__('Token验证错误'), ['__token__' => $this->request->token()]);
         }
 
         //刷新Token

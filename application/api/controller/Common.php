@@ -56,7 +56,7 @@ class Common extends Api
             ];
             $this->success('', $content);
         } else {
-            $this->error(__('Invalid parameters'));
+            $this->error(__('未知参数'));
         }
     }
 
@@ -73,7 +73,7 @@ class Common extends Api
         $chunkid = $this->request->post("chunkid");
         if ($chunkid) {
             if (!Config::get('upload.chunking')) {
-                $this->error(__('Chunk file disabled'));
+                $this->error(__('分片上传已禁用'));
             }
             $action = $this->request->post("action");
             $chunkindex = $this->request->post("chunkindex/d");
@@ -89,7 +89,7 @@ class Common extends Api
                 } catch (UploadException $e) {
                     $this->error($e->getMessage());
                 }
-                $this->success(__('Uploaded successful'), ['url' => $attachment->url, 'fullurl' => cdnurl($attachment->url, true)]);
+                $this->success(__('上传成功'), ['url' => $attachment->url, 'fullurl' => cdnurl($attachment->url, true)]);
             } elseif ($method == 'clean') {
                 //删除冗余的分片文件
                 try {
@@ -124,7 +124,7 @@ class Common extends Api
                 $this->error($e->getMessage());
             }
 
-            $this->success(__('Uploaded successful'), ['url' => $attachment->url, 'fullurl' => cdnurl($attachment->url, true)]);
+            $this->success(__('上传成功'), ['url' => $attachment->url, 'fullurl' => cdnurl($attachment->url, true)]);
         }
 
     }

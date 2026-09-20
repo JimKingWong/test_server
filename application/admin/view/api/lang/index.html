@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit">
+    <meta name="referrer" content="never">
+    <title>API语言管理</title>
+    <link rel="shortcut icon" href="__CDN__/assets/img/favicon.ico"/>
+    <link href="__CDN__/assets/css/backend.css" rel="stylesheet"/>
+    <link href="__CDN__/assets/libs/fastadmin-layer/dist/theme/default/layer.css" rel="stylesheet"/>
+</head>
+<body class="hold-transition skin-blue sidebar-mini fixed">
+{:token()}
+<div class="wrapper">
+    <div class="content-wrapper">
+        <section class="content-header">
+            <h1>{:__('API语言包管理')}<small>{:__('新增 / 编辑 / 删除 API 接口语言包')}</small></h1>
+        </section>
+        <section class="content">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">{:__('语言包列表')}</h3>
+                            <div class="box-tools pull-right">
+                                <a href="{:url('api/lang/add')}" class="btn btn-sm btn-success"><i class="fa fa-plus"></i> {:__('新增语言包')}</a>
+                            </div>
+                        </div>
+                        <div class="box-body table-responsive no-padding">
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>{:__('语言代码')}</th>
+                                    <th>{:__('文件名')}</th>
+                                    <th>{:__('条目数')}</th>
+                                    <th>{:__('文件大小')}</th>
+                                    <th>{:__('状态')}</th>
+                                    <th>{:__('操作')}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {volist name="list" id="vo"}
+                                <tr>
+                                    <td><code>{$vo.code}</code>
+                                        {if $vo.default}<span class="label label-warning">{:__('默认')}</span>{/if}
+                                    </td>
+                                    <td>{$vo.file}</td>
+                                    <td>{$vo.items}</td>
+                                    <td>{$vo.size}</td>
+                                    <td>
+                                        {if $vo.enabled}<span class="label label-success">{:__('已启用')}</span>
+                                        {else}<span class="label label-default">{:__('未启用')}</span>{/if}
+                                    </td>
+                                    <td>
+                                        <a href="{:url('api/lang/edit', ['ids' => $vo.code])}" class="btn btn-xs btn-primary"><i class="fa fa-edit"></i> {:__('编辑')}</a>
+                                        {if !$vo.default}
+                                        <a href="javascript:;" class="btn btn-xs btn-danger btn-del" data-id="{$vo.code}" data-title="{$vo.code}"><i class="fa fa-trash"></i> {:__('删除')}</a>
+                                        {/if}
+                                    </td>
+                                </tr>
+                                {/volist}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="box-footer">
+                            <p class="text-muted" style="margin:0;">
+                                {:__('当前支持语言')}：<code>{$allowLangList}</code>　{:__('默认语言')}：<code>{$defaultLang}</code>　
+                                <i class="fa fa-info-circle"></i> {:__('未启用语言需在 application/config.php 的 allow_lang_list 中添加代码后生效')}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+<script src="__CDN__/assets/libs/jquery/dist/jquery.min.js"></script>
+<script src="__CDN__/assets/libs/fastadmin-layer/dist/layer.js"></script>
+<script type="text/javascript">
+    // 删除确认
+    $(function () {
+        $(".btn-del").on("click", function () {
+            var id = $(this).data("id");
+            layer.confirm('{:__('确定删除语言包')} ' + id + ' ?', {icon: 3, title: '{:__('删除确认')}'}, function (index) {
+                $.ajax({
+                    url: "{:url('api/lang/del')}",
+                    type: "POST",
+                    data: {ids: id, __token__: $("input[name='__token__']").val()},
+                    dataType: "json",
+                    success: function (ret) {
+                        if (ret.code === 1) {
+                            layer.msg(ret.msg, {icon: 1}, function () {
+                                location.reload();
+                            });
+                        } else {
+                            layer.msg(ret.msg, {icon: 2});
+                        }
+                    }
+                });
+                layer.close(index);
+            });
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit">
+    <meta name="referrer" content="never">
+    <title>编辑语言包</title>
+    <link rel="shortcut icon" href="__CDN__/assets/img/favicon.ico"/>
+    <link href="__CDN__/assets/css/backend.css" rel="stylesheet"/>
+    <link href="__CDN__/assets/libs/fastadmin-layer/dist/theme/default/layer.css" rel="stylesheet"/>
+</head>
+<body class="hold-transition skin-blue sidebar-mini fixed">
+<div class="wrapper">
+    <div class="content-wrapper">
+        <section class="content-header">
+            <h1>{:__('编辑语言包')} <code>{$lang}</code>
+                {if $enabled}<span class="label label-success">{:__('已启用')}</span>
+                {else}<span class="label label-default">{:__('未启用')}</span>{/if}
+            </h1>
+        </section>
+        <section class="content">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">{:__('语言条目')}（{:__('共')} <span id="item-count">{$items|count}</span> {:__('条')}）</h3>
+                            <div class="box-tools pull-right">
+                                <a href="{:url('api/lang/index')}" class="btn btn-default btn-embossed">{:__('返回列表')}</a>
+                                <button type="button" class="btn btn-sm btn-success" id="btn-add-row"><i class="fa fa-plus"></i> {:__('添加条目')}</button>
+                            </div>
+                        </div>
+                        <div class="box-body table-responsive">
+                            <form id="edit-form" method="post" action="{:url('api/lang/edit', ['ids' => $lang])}" data-toggle="validator" role="form">
+                                {:token()}
+                                <input type="hidden" name="lang" value="{$lang}"/>
+                                <table class="table table-bordered table-hover" id="lang-table">
+                                    <thead>
+                                    <tr>
+                                        <th style="width:40%;">{:__('语言 Key')}</th>
+                                        <th style="width:50%;">{:__('翻译值')}</th>
+                                        <th style="width:10%;">{:__('操作')}</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {volist name="items" id="value" key="k"}
+                                    <tr>
+                                        <td><input type="text" class="form-control input-sm" name="items[{$k}][key]" value="{$key|htmlentities}" placeholder="key"/></td>
+                                        <td><input type="text" class="form-control input-sm" name="items[{$k}][value]" value="{$value|htmlentities}" placeholder="value"/></td>
+                                        <td class="text-center"><button type="button" class="btn btn-xs btn-danger btn-del-row"><i class="fa fa-trash"></i></button></td>
+                                    </tr>
+                                    {/volist}
+                                    </tbody>
+                                </table>
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-success btn-embossed"><i class="fa fa-save"></i> {:__('保存')}</button>
+                                    <a href="{:url('api/lang/index')}" class="btn btn-default btn-embossed">{:__('返回列表')}</a>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="box-footer">
+                            <p class="text-muted" style="margin:0;">
+                                <i class="fa fa-info-circle"></i> {:__('当前支持语言')}：<code>{$allowLangList}</code>　
+                                {:__('Key 为程序内使用的标识（勿随意修改），翻译值为输出给客户端的文案；支持 %s 等占位符')}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+<script src="__CDN__/assets/libs/jquery/dist/jquery.min.js"></script>
+<script src="__CDN__/assets/libs/fastadmin-layer/dist/layer.js"></script>
+<script type="text/javascript">
+    $(function () {
+        var table = $("#lang-table tbody");
+        // 添加条目
+        $("#btn-add-row").on("click", function () {
+            var index = new Date().getTime();
+            var row = '<tr>' +
+                '<td><input type="text" class="form-control input-sm" name="items[' + index + '][key]" value="" placeholder="key"/></td>' +
+                '<td><input type="text" class="form-control input-sm" name="items[' + index + '][value]" value="" placeholder="value"/></td>' +
+                '<td class="text-center"><button type="button" class="btn btn-xs btn-danger btn-del-row"><i class="fa fa-trash"></i></button></td>' +
+                '</tr>';
+            table.append(row);
+            refreshCount();
+        });
+        // 删除条目
+        table.on("click", ".btn-del-row", function () {
+            $(this).closest("tr").remove();
+            refreshCount();
+        });
+        function refreshCount() {
+            $("#item-count").text(table.find("tr").length);
+        }
+        // 保存（ajax 提交，绕开 require 依赖）
+        $("#edit-form").on("submit", function (e) {
+            e.preventDefault();
+            var invalid = false;
+            table.find("tr").each(function () {
+                var $key = $(this).find("input[name$='[key]']");
+                var $val = $(this).find("input[name$='[value]']");
+                if ($.trim($key.val()) === '' && $.trim($val.val()) === '') {
+                    return;
+                }
+                if ($.trim($key.val()) === '') {
+                    invalid = true;
+                    $key.focus();
+                    return false;
+                }
+            });
+            if (invalid) {
+                layer.msg('{:__('语言 Key 不能为空')}', {icon: 2});
+                return;
+            }
+            $.ajax({
+                url: "{:url('api/lang/edit', ['ids' => $lang])}",
+                type: "POST",
+                data: $(this).serialize(),
+                dataType: "json",
+                success: function (ret) {
+                    if (ret.code === 1) {
+                        layer.msg(ret.msg, {icon: 1}, function () {
+                            location.reload();
+                        });
+                    } else {
+                        layer.msg(ret.msg, {icon: 2});
+                    }
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
