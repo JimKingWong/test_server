@@ -92,6 +92,9 @@ class Api
      */
     protected function _initialize()
     {
+        // API 多语言：按请求参数/请求头切换语言并加载模块语言包
+        $this->initLang();
+
         //跨域请求检测
         check_cors_request();
 
@@ -160,6 +163,44 @@ class Api
     }
 
     /**
+     * API 多语言检测与语言包加载
+     * 语言优先级：?lang= 参数 > Accept-Language 请求头 > 系统默认语言
+     * 支持语言列表由 application/config.php 的 allow_lang_list 控制
+     * @access protected
+     */
+    protected function initLang()
+    {
+        $lang = $this->request->param('lang', '');
+        if (!$lang) {
+            $accept = $this->request->server('HTTP_ACCEPT_LANGUAGE', '');
+            if ($accept && preg_match('/^([a-z\-]+)/i', $accept, $m)) {
+                $lang = strtolower($m[1]);
+            }
+        }
+        // 兼容 zh 简写
+        if ($lang == 'zh') {
+            $lang = 'zh-cn';
+        }
+        $allowLang = Config::get('allow_lang_list') ?: ['zh-cn'];
+        if (!in_array($lang, $allowLang)) {
+            // 兼容 en-US 等带地区后缀的语言：取基础语言再匹配
+            $baseLang = strstr($lang, '-', true) ?: $lang;
+            if ($baseLang == 'zh') {
+                $baseLang = 'zh-cn';
+            }
+            if (in_array($baseLang, $allowLang)) {
+                $lang = $baseLang;
+            } else {
+                $lang = Config::get('default_lang') ?: 'zh-cn';
+            }
+        }
+        Lang::range($lang);
+        $this->request->langset($lang);
+        // 加载 API 模块语言包 application/api/lang/{lang}.php
+        Lang::load(APP_PATH . $this->request->module() . DS . 'lang' . DS . $lang . '.php');
+    }
+
+    /**
      * 操作成功返回的数据
      * @param string $msg    提示信息
      * @param mixed  $data   要返回的数据
@@ -169,7 +210,7 @@ class Api
      */
     protected function success($msg = '', $data = null, $code = 1, $type = null, array $header = [])
     {
-        $this->result($msg, $data, $code, $type, $header);
+        $this->result(__($msg), $data, $code, $type, $header);
     }
 
     /**
@@ -182,7 +223,7 @@ class Api
      */
     protected function error($msg = '', $data = null, $code = 0, $type = null, array $header = [])
     {
-        $this->result($msg, $data, $code, $type, $header);
+        $this->result(__($msg), $data, $code, $type, $header);
     }
 
     /**

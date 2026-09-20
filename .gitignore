@@ -17,3 +17,10 @@ composer.lock
 .vscode
 node_modules
 .user.ini
+
+
+/application/database.php
+/application/config.php
+/application/extra/
+/public/assets/js/addons.js
+/public/bl_admin/
