@@ -561,3 +561,56 @@ EOT;
         return $icon;
     }
 }
+
+
+if (!function_exists('dd')) {
+    /**
+     * 打印变量并终止程序（类似 var_dump + die）
+     * @param mixed ...$vars 要打印的变量，支持多个
+     */
+    function dd(...$vars)
+    {
+        // 清空之前的所有输出缓冲，避免页面杂乱
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        header('Content-Type: text/html; charset=utf-8');
+
+        echo '<pre style="
+            background:#282c34;
+            color:#abb2bf;
+            padding:15px;
+            margin:10px 0;
+            border-radius:6px;
+            font-size:14px;
+            line-height:1.6;
+            overflow:auto;
+            word-break:break-all;
+            white-space:pre-wrap;
+            font-family:Menlo,Monaco,Consolas,monospace;
+        ">';
+
+        foreach ($vars as $index => $var) {
+            echo '<div style="border-bottom:1px dashed #555;padding-bottom:10px;margin-bottom:10px;">';
+            echo '<span style="color:#e06c75;font-weight:bold;">变量 #' . ($index + 1) . '：</span>' . PHP_EOL;
+            echo '<span style="color:#98c379;">类型：' . gettype($var) . '</span>' . PHP_EOL;
+            echo '<span style="color:#61afef;">内容：</span>' . PHP_EOL;
+            var_dump($var);
+            echo '</div>';
+        }
+
+        echo '</pre>';
+
+        exit(1);
+
+        // 简洁模式
+        // echo '<pre style="background:#282c34;color:#abb2bf;padding:15px;border-radius:6px;font-size:14px;">';
+        // foreach ($vars as $var) {
+        //     var_dump($var);
+        //     echo PHP_EOL;
+        // }
+        // echo '</pre>';
+        // exit;
+    }
+}

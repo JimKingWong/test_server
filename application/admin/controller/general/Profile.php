@@ -52,7 +52,7 @@ class Profile extends Backend
                 $secret = $googleAuth->createSecret();
                 Session::set('admin_ga_new_secret', $secret);
             }
-            $gaUrl = $googleAuth->getQRCodeGoogleUrl($this->auth->username, $secret);
+            $gaUrl = $googleAuth->getQRCodeGoogleUrl($this->auth->username, $secret, config('site.name'));
             $this->view->assign('gaSecret', $secret);
             $this->view->assign('gaUrl', $gaUrl);
             // 生成二维码（otpauth 链接 → PNG base64，供扫码绑定）
@@ -63,6 +63,9 @@ class Profile extends Backend
                 $this->view->assign('gaQr', '');
             }
         }
+
+        $google_auth = config('system.google_auth');
+        $this->view->assign('google_auth', $google_auth);
         return $this->view->fetch();
     }
 

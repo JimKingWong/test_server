@@ -103,7 +103,7 @@ class Index extends Backend
                 Hook::listen("admin_login_after", $this->request);
                 // 谷歌验证器：系统已启用且该管理员已绑定密钥时，登录必须输入动态验证码
                 $admin = \app\admin\model\Admin::get($this->auth->id);
-                if (config('site.google_auth') && $admin && $admin->google_secret) {
+                if (config('system.google_auth') && $admin && $admin->google_secret) {
                     $code = $this->request->post('code', '', 'trim');
                     $googleAuth = new GoogleAuthenticator();
                     if (!$code) {
@@ -132,6 +132,9 @@ class Index extends Backend
         }
         $background = Config::get('fastadmin.login_background');
         $background = $background ? (stripos($background, 'http') === 0 ? $background : config('site.cdnurl') . $background) : '';
+
+        $google_auth = config('system.google_auth');
+        $this->view->assign('google_auth', $google_auth);
         $this->view->assign('keeyloginhours', $keeyloginhours);
         $this->view->assign('background', $background);
         $this->view->assign('title', __('Login'));
