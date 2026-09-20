@@ -33,3 +33,72 @@
         </div>
     </div>
 </div>
+<script type="text/javascript">
+    // 生成子菜单：弹窗勾选该规则下的候选子菜单，已生成的默认勾选
+    function GenSubmenu(id) {
+        $.ajax({
+            url: 'auth/rule/submenu',
+            type: 'GET',
+            data: {id: id},
+            dataType: 'json',
+            success: function (ret) {
+                if (ret.code !== 1) {
+                    Layer.msg(ret.msg, {icon: 2});
+                    return;
+                }
+                var data = ret.data;
+                var html = '<div style="padding:15px 20px;">' +
+                    '<p class="text-muted" style="margin-bottom:10px;">{:__('规则')}：<code>' + data.name + '</code></p>' +
+                    '<div style="max-height:400px;overflow:auto;">';
+                var has = false;
+                $.each(data.methods, function (i, m) {
+                    has = true;
+                    html += '<label style="display:block;margin:6px 0;font-weight:normal;">' +
+                        '<input type="checkbox" name="submethod" value="' + m.method + '"' + (m.exists ? ' checked' : '') + '> ' +
+                        '<code>' + m.method + '</code> - ' + m.title +
+                        (m.exists ? ' <span class="text-success">（{:__('已生成')}）</span>' : '') +
+                        '</label>';
+                });
+                html += '</div></div>';
+                if (!has) {
+                    html = '<div style="padding:30px;text-align:center;color:#999;">{:__('未找到可生成的控制器方法')}</div>';
+                }
+                Layer.open({
+                    type: 1,
+                    title: '{:__('生成子菜单')}',
+                    area: ['500px', '80%'],
+                    content: html,
+                    btn: ['{:__('生成')}', '{:__('取消')}'],
+                    yes: function (index, layero) {
+                        var methods = [];
+                        layero.find('input[name="submethod"]:checked').each(function () {
+                            methods.push($(this).val());
+                        });
+                        if (methods.length === 0) {
+                            Layer.msg('{:__('请至少勾选一个子菜单')}', {icon: 2});
+                            return;
+                        }
+                        $.ajax({
+                            url: 'auth/rule/gensubmenu',
+                            type: 'POST',
+                            data: {id: id, methods: methods},
+                            dataType: 'json',
+                            success: function (ret2) {
+                                if (ret2.code === 1) {
+                                    Layer.close(index);
+                                    Layer.msg(ret2.msg, {icon: 1});
+                                    $('#table').bootstrapTable('refresh');
+                                    if (typeof Fast !== 'undefined' && Fast.api) {
+                                        Fast.api.refreshmenu();
+                                    }
+                                } else {
+                                    Layer.msg(ret2.msg, {icon: 2});
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+</script>

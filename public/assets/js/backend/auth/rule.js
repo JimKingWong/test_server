@@ -38,6 +38,17 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form', 'template'], function
                             formatter: Table.api.formatter.toggle
                         },
                         {
+                            field: 'submenu',
+                            title: __('生成子菜单'),
+                            align: 'center',
+                            formatter: function (value, row, index) {
+                                if (row.ismenu && row.has_ctrl) {
+                                    return '<a href="javascript:;" class="btn btn-xs btn-success" onclick="GenSubmenu(' + row.id + ')"><i class="fa fa-plus-circle"></i> ' + __('生成子菜单') + '</a>';
+                                }
+                                return '';
+                            }
+                        },
+                        {
                             field: 'operate',
                             title: __('Operate'),
                             table: table,

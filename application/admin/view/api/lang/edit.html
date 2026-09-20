@@ -26,8 +26,9 @@
                         <div class="box-header with-border">
                             <h3 class="box-title">{:__('语言条目')}（{:__('共')} <span id="item-count">{$items|count}</span> {:__('条')}）</h3>
                             <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-sm btn-primary" id="btn-add-row"><i class="fa fa-plus"></i> {:__('添加条目')}</button>
+                                <button type="button" class="btn btn-sm btn-success" id="btn-save-top"><i class="fa fa-save"></i> {:__('保存')}</button>
                                 <a href="{:url('api/lang/index')}" class="btn btn-default btn-embossed">{:__('返回列表')}</a>
-                                <button type="button" class="btn btn-sm btn-success" id="btn-add-row"><i class="fa fa-plus"></i> {:__('添加条目')}</button>
                             </div>
                         </div>
                         <div class="box-body table-responsive">
@@ -53,7 +54,6 @@
                                     </tbody>
                                 </table>
                                 <div class="form-group">
-                                    <button type="submit" class="btn btn-success btn-embossed"><i class="fa fa-save"></i> {:__('保存')}</button>
                                     <a href="{:url('api/lang/index')}" class="btn btn-default btn-embossed">{:__('返回列表')}</a>
                                 </div>
                             </form>
@@ -75,7 +75,7 @@
 <script type="text/javascript">
     $(function () {
         var table = $("#lang-table tbody");
-        // 添加条目
+        // 添加条目：新条目插入到最上面，便于直接填写
         $("#btn-add-row").on("click", function () {
             var index = new Date().getTime();
             var row = '<tr>' +
@@ -83,8 +83,15 @@
                 '<td><input type="text" class="form-control input-sm" name="items[' + index + '][value]" value="" placeholder="value"/></td>' +
                 '<td class="text-center"><button type="button" class="btn btn-xs btn-danger btn-del-row"><i class="fa fa-trash"></i></button></td>' +
                 '</tr>';
-            table.append(row);
+            table.prepend(row);
             refreshCount();
+            // 滚动到顶部，聚焦新条目 key 输入框
+            $("html, body").animate({scrollTop: 0}, 200);
+            table.find("tr").first().find("input[name$='[key]']").focus();
+        });
+        // 顶部保存按钮
+        $("#btn-save-top").on("click", function () {
+            $("#edit-form").trigger("submit");
         });
         // 删除条目
         table.on("click", ".btn-del-row", function () {
