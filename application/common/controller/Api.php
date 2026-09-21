@@ -161,12 +161,13 @@ class Api
 
     /**
      * API 接口验签
-     * 规则见 application/common/service/util/Sign.php，开关配置见 application/extra/api.php
+     * 规则见 application/common/service/util/Sign.php，开关配置见后台"开发设置"(application/extra/develop.php)
      * @access protected
      */
     protected function initSign()
     {
-        if (!Config::get('api.api_sign')) {
+        // switch 保存为 '1'/'0' 字符串，必须用 == '1' 判断（'0' 在 PHP 中是非空字符串，不能直接当布尔用）
+        if (Config::get('develop.api_sign') != '1') {
             return;
         }
         // 跨域预检请求不验签
@@ -279,6 +280,22 @@ class Api
         ];
         // 如果未设置类型则使用默认类型判断
         $type = $type ? : $this->responseType;
+
+        // API 返回数据加密（开关见后台"开发设置" develop.api_response_encrypt）
+        // 仅对 json/jsonp 响应加密；code/msg/time 保持明文便于客户端判断状态，data 为 AES-256-CBC 密文
+        if (Config::get('develop.api_response_encrypt') == '1' && in_array($type, ['json', 'jsonp'])) {
+            $enc = \app\common\service\util\Encrypt::encrypt(json_encode($result, JSON_UNESCAPED_UNICODE));
+            if ($enc !== false) {
+                $result = [
+                    'code'    => $code,
+                    'msg'     => $msg,
+                    'time'    => $result['time'],
+                    'data'    => $enc['data'],
+                    'iv'      => $enc['iv'],
+                    'encrypt' => 1,
+                ];
+            }
+        }
 
         if (isset($header['statuscode'])) {
             $code = $header['statuscode'];

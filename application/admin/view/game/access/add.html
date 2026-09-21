@@ -1,0 +1,49 @@
+<form id="add-form" class="form-horizontal" role="form" data-toggle="validator" method="POST" action="">
+
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Dealer_id')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-dealer_id" data-rule="required" data-source="dealer/index" class="form-control selectpage" name="row[dealer_id]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Game_id')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-game_id" class="form-control" name="row[game_id]" type="text">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Real_game_id')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-real_game_id" class="form-control" name="row[real_game_id]" type="text">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Code')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-code" class="form-control" name="row[code]" type="text">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Priority')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-priority" class="form-control" name="row[priority]" type="number" value="100">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Status')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            
+            <input  id="c-status" name="row[status]" type="hidden" value="1">
+            <a href="javascript:;" data-toggle="switcher" class="btn-switcher" data-input-id="c-status" data-yes="1" data-no="0" >
+                <i class="fa fa-toggle-on text-success  fa-2x"></i>
+            </a>
+        </div>
+    </div>
+    <div class="form-group layer-footer">
+        <label class="control-label col-xs-12 col-sm-2"></label>
+        <div class="col-xs-12 col-sm-8">
+            <button type="submit" class="btn btn-primary btn-embossed disabled">{:__('OK')}</button>
+        </div>
+    </div>
+</form>

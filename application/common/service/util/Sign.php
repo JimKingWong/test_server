@@ -45,12 +45,12 @@ class Sign
         if ($secret !== '') {
             $this->secret = $secret;
         } else {
-            $this->secret = (string)Config::get('api.api_sign_secret');
+            $this->secret = (string)Config::get('develop.api_sign_secret');
         }
         if ($expire > 0) {
             $this->expire = $expire;
         } else {
-            $this->expire = (int)Config::get('api.api_sign_expire') ?: 300;
+            $this->expire = (int)Config::get('develop.api_sign_expire') ?: 300;
         }
     }
 

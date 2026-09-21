@@ -1,0 +1,31 @@
+<?php
+
+return [
+    'Cate_id'      => '分类id',
+    'G_id'         => '游戏表id',
+    'Table_name'   => '游戏表名',
+    'Real_game_id' => '游戏id',
+    'Game_name'    => '游戏名称',
+    'Image'        => '游戏图片',
+    'Thumb'        => '缩略图',
+    'Bet_rate'     => '流水比例',
+    'Config'       => '其他配置',
+    'Type'         => '类型',
+    'Type 0'       => '默认值',
+    'Type 1'       => '热门',
+    'Type 2'       => '耐玩',
+    'Type 3'       => '最近上新',
+    'Game_type'    => '游戏类型',
+    'Status'       => '状态',
+    'Status 0'     => '下架',
+    'Set status to 0'=> '设为下架',
+    'Status 1'     => '上架',
+    'Set status to 1'=> '设为上架',
+    'Is_works'     => '游戏状态',
+    'Is_works 0'   => '维护',
+    'Is_works 1'   => '正常',
+    'Weigh'        => '排序',
+    'Createtime'   => '创建时间',
+    'Updatetime'   => '更新时间',
+    'Deletetime'   => '删除时间'
+];

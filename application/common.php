@@ -614,3 +614,20 @@ if (!function_exists('dd')) {
         // exit;
     }
 }
+
+/**
+ * 获取真实 IP（支持代理）
+ */
+if (!function_exists('getRealIp')) {
+    function getRealIp()
+    {
+        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+            return trim($ips[0]);
+        }
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            return $_SERVER['HTTP_CLIENT_IP'];
+        }
+        return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    }
+}

@@ -54,7 +54,8 @@ class Database extends Backend
             `sql_text` text COMMENT '执行的SQL',
             `operator` varchar(50) NOT NULL DEFAULT '' COMMENT '操作人',
             `operator_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '操作人ID',
-            `create_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '操作时间',
+            `ip` varchar(50) NOT NULL DEFAULT '' COMMENT '操作IP',
+            `createtime` datetime  DEFAULT NULL COMMENT '操作时间',
             PRIMARY KEY (`id`),
             KEY `idx_table` (`table_name`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='数据库表结构变动记录'";
@@ -80,7 +81,8 @@ class Database extends Backend
             'sql_text'    => $sql,
             'operator'    => $operator,
             'operator_id' => $this->auth ? (int)$this->auth->id : 0,
-            'create_time' => time(),
+            'ip'          => getRealIp(),
+            'createtime' => datetime(time()),
         ]);
     }
 
