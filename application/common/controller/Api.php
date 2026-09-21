@@ -102,6 +102,9 @@ class Api
         // API 多语言：按请求参数/请求头切换语言并加载模块语言包
         $this->initLang();
 
+        // API 接口验签（开关见 application/extra/api.php）
+        $this->initSign();
+
         //跨域请求检测
         check_cors_request();
 
@@ -154,6 +157,27 @@ class Api
 
         // 加载当前控制器语言包
         $this->loadlang($controllername);
+    }
+
+    /**
+     * API 接口验签
+     * 规则见 application/common/service/util/Sign.php，开关配置见 application/extra/api.php
+     * @access protected
+     */
+    protected function initSign()
+    {
+        if (!Config::get('api.api_sign')) {
+            return;
+        }
+        // 跨域预检请求不验签
+        if ($this->request->isOptions()) {
+            return;
+        }
+        $sign = new \app\common\service\util\Sign();
+        $result = $sign->check($this->request->param());
+        if ($result !== true) {
+            $this->error((string)$result);
+        }
     }
 
     /**

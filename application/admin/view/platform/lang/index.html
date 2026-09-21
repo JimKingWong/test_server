@@ -24,7 +24,7 @@
                         <div class="box-header with-border">
                             <h3 class="box-title">{:__('语言包列表')}</h3>
                             <div class="box-tools pull-right">
-                                <a href="{:url('api/lang/add')}" class="btn btn-sm btn-success"><i class="fa fa-plus"></i> {:__('新增语言包')}</a>
+                                <a href="{:url('platform/lang/add')}" class="btn btn-sm btn-success"><i class="fa fa-plus"></i> {:__('新增语言包')}</a>
                             </div>
                         </div>
                         <div class="box-body table-responsive no-padding">
@@ -53,7 +53,7 @@
                                         {else}<span class="label label-default">{:__('未启用')}</span>{/if}
                                     </td>
                                     <td>
-                                        <a href="{:url('api/lang/edit', ['ids' => $vo.code])}" class="btn btn-xs btn-primary"><i class="fa fa-edit"></i> {:__('编辑')}</a>
+                                        <a href="{:url('platform/lang/edit', ['ids' => $vo.code])}" class="btn btn-xs btn-primary"><i class="fa fa-edit"></i> {:__('编辑')}</a>
                                         {if !$vo.default}
                                         <a href="javascript:;" class="btn btn-xs btn-danger btn-del" data-id="{$vo.code}" data-title="{$vo.code}"><i class="fa fa-trash"></i> {:__('删除')}</a>
                                         {/if}
@@ -84,7 +84,7 @@
             var id = $(this).data("id");
             layer.confirm('{:__('确定删除语言包')} ' + id + ' ?', {icon: 3, title: '{:__('删除确认')}'}, function (index) {
                 $.ajax({
-                    url: "{:url('api/lang/del')}",
+                    url: "{:url('platform/lang/del')}",
                     type: "POST",
                     data: {ids: id, __token__: $("input[name='__token__']").val()},
                     dataType: "json",

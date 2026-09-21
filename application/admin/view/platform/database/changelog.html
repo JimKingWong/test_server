@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit">
+    <meta name="referrer" content="never">
+    <title>{:__('结构变动记录')}</title>
+    <link rel="shortcut icon" href="__CDN__/assets/img/favicon.ico"/>
+    <link href="__CDN__/assets/css/backend.css" rel="stylesheet"/>
+    <link href="__CDN__/assets/libs/fastadmin-layer/dist/theme/default/layer.css" rel="stylesheet"/>
+</head>
+<body class="hold-transition skin-blue sidebar-mini fixed">
+<div class="wrapper" id="app">
+    <div class="content-wrapper">
+        <section class="content-header">
+            <h1>{:__('结构变动记录')}<small>{:__('建表 / 字段增删改 / 删表操作历史')}</small></h1>
+        </section>
+        <section class="content">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">{:__('变动列表')} <span v-if="filterTable" class="label label-primary">{$filterTable}</span></h3>
+                            <div class="box-tools pull-right">
+                                <a href="{:url('platform/database/index')}" class="btn btn-sm btn-default"><i class="fa fa-list"></i> {:__('返回列表')}</a>
+                            </div>
+                        </div>
+                        <div class="box-body table-responsive no-padding">
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th style="width:10%;">{:__('时间')}</th>
+                                    <th style="width:14%;">{:__('数据表')}</th>
+                                    <th style="width:12%;">{:__('操作')}</th>
+                                    <th style="width:10%;">{:__('操作人')}</th>
+                                    <th>{:__('SQL')}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-if="list.length === 0 && !loading">
+                                    <td colspan="5" class="text-center text-muted">{:__('暂无记录')}</td>
+                                </tr>
+                                <tr v-for="vo in list" :key="vo.id">
+                                    <td>{{ vo.create_time_text }}</td>
+                                    <td><code>{{ vo.table_name }}</code></td>
+                                    <td><span class="label" :class="vo.action === 'DROP_TABLE' || vo.action === 'DROP_FIELD' ? 'label-danger' : 'label-info'">{{ vo.action }}</span></td>
+                                    <td>{{ vo.operator }}</td>
+                                    <td style="word-break:break-all;"><code style="font-size:12px;color:#555;">{{ vo.sql_text }}</code></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="box-footer">
+                            <div class="pull-left">
+                                <ul class="pagination pagination-sm no-margin">
+                                    <li v-if="page > 1"><a href="javascript:;" @click="go(page - 1)">&laquo;</a></li>
+                                    <li class="active"><a>{{ page }} / {{ totalPage }}</a></li>
+                                    <li v-if="page < totalPage"><a href="javascript:;" @click="go(page + 1)">&raquo;</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+<script src="__CDN__/assets/libs/jquery/dist/jquery.min.js"></script>
+<script src="__CDN__/assets/libs/fastadmin-layer/dist/layer.js"></script>
+<script src="__CDN__/assets/libs/vue/dist/vue.min.js"></script>
+<script type="text/javascript">
+    new Vue({
+        el: '#app',
+        data: {
+            list: [],
+            page: 1,
+            totalPage: 1,
+            loading: false,
+            filterTable: '{$filterTable}'
+        },
+        mounted: function () {
+            this.load();
+        },
+        methods: {
+            load: function () {
+                var self = this;
+                this.loading = true;
+                var url = "{:url('platform/database/changelog')}?page=" + this.page;
+                if (this.filterTable) {
+                    url += '&table=' + encodeURIComponent(this.filterTable);
+                }
+                $.ajax({
+                    url: url,
+                    dataType: "json",
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    success: function (ret) {
+                        self.list = ret.rows;
+                        self.totalPage = Math.max(1, Math.ceil(ret.total / 20));
+                        self.loading = false;
+                    },
+                    error: function () {
+                        self.loading = false;
+                    }
+                });
+            },
+            go: function (p) {
+                this.page = p;
+                this.load();
+            }
+        }
+    });
+</script>
+</body>
+</html>

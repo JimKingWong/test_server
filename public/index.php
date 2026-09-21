@@ -10,6 +10,13 @@
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
 // [ 应用入口文件 ]
+// 跨域
+header('Access-Control-Allow-Origin: *'); //星号表示允许所有来源跨域请求，生产环境建议配置成你的来源站点的域名
+header("Access-Control-Allow-Headers: *");
+header('Access-Control-Allow-Methods:*');
+header('Access-Control-Expose-Headers:*');
+header('Access-Control-Allow-Credentials:true');
+
 // 定义应用目录
 define('APP_PATH', __DIR__ . '/../application/');
 

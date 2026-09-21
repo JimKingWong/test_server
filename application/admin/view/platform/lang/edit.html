@@ -28,11 +28,11 @@
                             <div class="box-tools pull-right">
                                 <button type="button" class="btn btn-sm btn-primary" id="btn-add-row"><i class="fa fa-plus"></i> {:__('添加条目')}</button>
                                 <button type="button" class="btn btn-sm btn-success" id="btn-save-top"><i class="fa fa-save"></i> {:__('保存')}</button>
-                                <a href="{:url('api/lang/index')}" class="btn btn-default btn-embossed">{:__('返回列表')}</a>
+                                <a href="{:url('platform/lang/index')}" class="btn btn-default btn-embossed">{:__('返回列表')}</a>
                             </div>
                         </div>
                         <div class="box-body table-responsive">
-                            <form id="edit-form" method="post" action="{:url('api/lang/edit', ['ids' => $lang])}" data-toggle="validator" role="form">
+                            <form id="edit-form" method="post" action="{:url('platform/lang/edit', ['ids' => $lang])}" data-toggle="validator" role="form">
                                 {:token()}
                                 <input type="hidden" name="lang" value="{$lang}"/>
                                 <table class="table table-bordered table-hover" id="lang-table">
@@ -54,7 +54,7 @@
                                     </tbody>
                                 </table>
                                 <div class="form-group">
-                                    <a href="{:url('api/lang/index')}" class="btn btn-default btn-embossed">{:__('返回列表')}</a>
+                                    <a href="{:url('platform/lang/index')}" class="btn btn-default btn-embossed">{:__('返回列表')}</a>
                                 </div>
                             </form>
                         </div>
@@ -122,7 +122,7 @@
                 return;
             }
             $.ajax({
-                url: "{:url('api/lang/edit', ['ids' => $lang])}",
+                url: "{:url('platform/lang/edit', ['ids' => $lang])}",
                 type: "POST",
                 data: $(this).serialize(),
                 dataType: "json",

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit">
+    <meta name="referrer" content="never">
+    <title>{:__('数据库管理')}</title>
+    <link rel="shortcut icon" href="__CDN__/assets/img/favicon.ico"/>
+    <link href="__CDN__/assets/css/backend.css" rel="stylesheet"/>
+    <link href="__CDN__/assets/libs/fastadmin-layer/dist/theme/default/layer.css" rel="stylesheet"/>
+</head>
+<body class="hold-transition skin-blue sidebar-mini fixed">
+{:token()}
+<div class="wrapper" id="app">
+    <div class="content-wrapper">
+        <section class="content-header">
+            <h1>{:__('数据库管理')}<small>{:__('创建数据表 / 字段增删改 / 结构变动记录')}</small></h1>
+        </section>
+        <section class="content">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">{:__('数据表列表')} <span class="label label-primary" v-if="loading">{:__('加载中')}...</span></h3>
+                            <div class="box-tools pull-right">
+                                <a href="{:url('platform/database/changelog')}" class="btn btn-sm btn-default"><i class="fa fa-history"></i> {:__('变动记录')}</a>
+                                <a href="{:url('platform/database/add')}" class="btn btn-sm btn-success"><i class="fa fa-plus"></i> {:__('创建数据表')}</a>
+                            </div>
+                        </div>
+                        <div class="box-body table-responsive no-padding">
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>{:__('表名')}</th>
+                                    <th>{:__('字段数')}</th>
+                                    <th>{:__('引擎')}</th>
+                                    <th>{:__('行数')}</th>
+                                    <th>{:__('排序规则')}</th>
+                                    <th>{:__('备注')}</th>
+                                    <th>{:__('操作')}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-if="rows.length === 0 && !loading">
+                                    <td colspan="7" class="text-center text-muted">{:__('暂无数据')}</td>
+                                </tr>
+                                <tr v-for="row in rows" :key="row.name">
+                                    <td><code>{{ row.name }}</code><span v-if="row.is_log" class="label label-warning">{:__('变动记录表')}</span></td>
+                                    <td>{{ row.fields }}</td>
+                                    <td>{{ row.engine }}</td>
+                                    <td>{{ row.rows }}</td>
+                                    <td>{{ row.collation }}</td>
+                                    <td>{{ row.comment }}</td>
+                                    <td>
+                                        <a :href="fieldUrl(row.name)" class="btn btn-xs btn-primary"><i class="fa fa-th-list"></i> {:__('管理字段')}</a>
+                                        <a v-if="!row.is_log" href="javascript:;" class="btn btn-xs btn-danger" @click="del(row)"><i class="fa fa-trash"></i> {:__('删除表')}</a>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="box-footer">
+                            <p class="text-muted" style="margin:0;">
+                                <i class="fa fa-info-circle"></i> {:__('所有建表与字段变更操作均记录在')} <code>ga_table_change_log</code> {:__('表中，可在变动记录中查看')}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+<script src="__CDN__/assets/libs/jquery/dist/jquery.min.js"></script>
+<script src="__CDN__/assets/libs/fastadmin-layer/dist/layer.js"></script>
+<script src="__CDN__/assets/libs/vue/dist/vue.min.js"></script>
+<script type="text/javascript">
+    new Vue({
+        el: '#app',
+        data: {
+            rows: [],
+            loading: false,
+            token: ''
+        },
+        mounted: function () {
+            this.token = $("input[name='__token__']").val();
+            this.load();
+        },
+        methods: {
+            load: function () {
+                var self = this;
+                this.loading = true;
+                $.ajax({
+                    url: "{:url('platform/database/index')}",
+                    dataType: "json",
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    success: function (ret) {
+                        self.rows = ret.rows;
+                        self.loading = false;
+                    },
+                    error: function () {
+                        self.loading = false;
+                    }
+                });
+            },
+            fieldUrl: function (name) {
+                return "{:url('platform/database/field')}" + '?table=' + encodeURIComponent(name);
+            },
+            del: function (row) {
+                var self = this;
+                layer.confirm('{:__('确定删除数据表')} <code>' + row.name + '</code> ? {:__('该操作不可恢复')}', {icon: 3, title: '{:__('删除确认')}'}, function (index) {
+                    $.ajax({
+                        url: "{:url('platform/database/del')}",
+                        type: "POST",
+                        data: {table: row.name, __token__: self.token},
+                        dataType: "json",
+                        success: function (ret, textStatus, xhr) {
+                            var nt = xhr.getResponseHeader('__token__') || (ret.data && (ret.data.__token__ || ret.data.token));
+                            if (nt) {
+                                self.token = nt;
+                                $("input[name='__token__']").val(nt);
+                            }
+                            if (ret.code === 1) {
+                                layer.msg(ret.msg, {icon: 1});
+                                self.load();
+                            } else {
+                                layer.msg(ret.msg, {icon: 2});
+                            }
+                        }
+                    });
+                    layer.close(index);
+                });
+            }
+        }
+    });
+</script>
+</body>
+</html>

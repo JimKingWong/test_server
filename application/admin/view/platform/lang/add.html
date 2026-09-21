@@ -24,7 +24,7 @@
                             <h3 class="box-title">{:__('语言信息')}</h3>
                         </div>
                         <div class="box-body">
-                            <form id="add-form" class="form-horizontal" method="post" action="{:url('api/lang/add')}" data-toggle="validator" role="form">
+                            <form id="add-form" class="form-horizontal" method="post" action="{:url('platform/lang/add')}" data-toggle="validator" role="form">
                                 {:token()}
                                 <div class="form-group">
                                     <label class="control-label col-xs-12 col-sm-2">{:__('语言代码')}:</label>
@@ -48,7 +48,7 @@
                                     <label class="control-label col-xs-12 col-sm-2"></label>
                                     <div class="col-xs-12 col-sm-6">
                                         <button type="submit" class="btn btn-success btn-embossed">{:__('创建')}</button>
-                                        <a href="{:url('api/lang/index')}" class="btn btn-default btn-embossed">{:__('返回列表')}</a>
+                                        <a href="{:url('platform/lang/index')}" class="btn btn-default btn-embossed">{:__('返回列表')}</a>
                                     </div>
                                 </div>
                             </form>
@@ -76,14 +76,14 @@
                 return;
             }
             $.ajax({
-                url: "{:url('api/lang/add')}",
+                url: "{:url('platform/lang/add')}",
                 type: "POST",
                 data: $(this).serialize(),
                 dataType: "json",
                 success: function (ret) {
                     if (ret.code === 1) {
                         layer.msg(ret.msg, {icon: 1}, function () {
-                            location.href = "{:url('api/lang/edit', ['ids' => '__LANG__'])}".replace('__LANG__', ret.data.code);
+                            location.href = "{:url('platform/lang/edit', ['ids' => '__LANG__'])}".replace('__LANG__', ret.data.code);
                         });
                     } else {
                         layer.msg(ret.msg, {icon: 2});

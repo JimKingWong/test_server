@@ -1,6 +1,6 @@
 <?php
 
-namespace app\admin\controller\api;
+namespace app\admin\controller\platform;
 
 use app\common\controller\Backend;
 use think\Config;

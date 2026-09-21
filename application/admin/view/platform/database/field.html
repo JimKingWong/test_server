@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit">
+    <meta name="referrer" content="never">
+    <title>{:__('字段管理')}</title>
+    <link rel="shortcut icon" href="__CDN__/assets/img/favicon.ico"/>
+    <link href="__CDN__/assets/css/backend.css" rel="stylesheet"/>
+    <style>
+        .dlg-mask { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 9999; }
+        .dlg-box { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 440px; max-height: 90vh; overflow: auto; background: #fff; border-radius: 4px; z-index: 10000; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,.2); }
+        .dlg-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; }
+        .dlg-actions { margin-top: 15px; text-align: right; }
+    </style>
+</head>
+<body class="hold-transition skin-blue sidebar-mini fixed">
+{:token()}
+<div class="wrapper" id="app">
+    <div class="content-wrapper">
+        <section class="content-header">
+            <h1>{:__('字段管理')} <code>{{ table }}</code><small>{:__('新增 / 编辑 / 删除字段，操作自动记录')}</small></h1>
+        </section>
+        <section class="content">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">{:__('字段列表')} <span class="label label-primary" v-if="loading">{:__('加载中')}...</span></h3>
+                            <div class="box-tools pull-right">
+                                <a :href="changelogUrl" class="btn btn-sm btn-default"><i class="fa fa-history"></i> {:__('本表变动记录')}</a>
+                                <a href="{:url('platform/database/index')}" class="btn btn-sm btn-default"><i class="fa fa-list"></i> {:__('返回列表')}</a>
+                                <button type="button" class="btn btn-sm btn-success" @click="openAdd()"><i class="fa fa-plus"></i> {:__('新增字段')}</button>
+                            </div>
+                        </div>
+                        <div class="box-body table-responsive no-padding">
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>{:__('字段名')}</th>
+                                    <th>{:__('类型')}</th>
+                                    <th>{:__('可空')}</th>
+                                    <th>{:__('默认值')}</th>
+                                    <th>{:__('键')}</th>
+                                    <th>{:__('自增')}</th>
+                                    <th>{:__('注释')}</th>
+                                    <th>{:__('操作')}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-if="fields.length === 0 && !loading">
+                                    <td colspan="8" class="text-center text-muted">{:__('暂无字段')}</td>
+                                </tr>
+                                <tr v-for="f in fields" :key="f.COLUMN_NAME">
+                                    <td><code>{{ f.COLUMN_NAME }}</code></td>
+                                    <td>{{ f.COLUMN_TYPE }}</td>
+                                    <td>{{ f.IS_NULLABLE }}</td>
+                                    <td>{{ f.COLUMN_DEFAULT }}</td>
+                                    <td>{{ f.COLUMN_KEY }}</td>
+                                    <td><span v-if="f.EXTRA === 'auto_increment'" class="label label-primary">AUTO</span></td>
+                                    <td>{{ f.COLUMN_COMMENT }}</td>
+                                    <td>
+                                        <a href="javascript:;" class="btn btn-xs btn-primary" @click="openEdit(f)"><i class="fa fa-pencil"></i> {:__('编辑')}</a>
+                                        <a href="javascript:;" class="btn btn-xs btn-danger" @click="del(f)"><i class="fa fa-trash"></i> {:__('删除')}</a>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="box-footer">
+                            <p class="text-muted" style="margin:0;">
+                                <i class="fa fa-info-circle"></i> {:__('字段类型白名单')}：<code>{{ types.join(', ') }}</code>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 纯 Vue 弹窗（v-if + v-model，不经过 layer，避免克隆丢绑定） -->
+    <div v-if="dlgVisible" class="dlg-mask"></div>
+    <div v-if="dlgVisible" class="dlg-box">
+        <div class="dlg-title">{{ dlgTitle }}</div>
+        <div class="form-group">
+            <label>{:__('字段名')}:</label>
+            <input type="text" class="form-control" v-model="form.name" :readonly="form.isEdit" placeholder="field_name"/>
+        </div>
+        <div class="form-group">
+            <label>{:__('类型')}:</label>
+            <select class="form-control" v-model="form.type">
+                <option v-for="t in types" :value="t">{{ t }}</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>{:__('长度')}:</label>
+            <input type="text" class="form-control" v-model="form.length" placeholder="11 或 10,2"/>
+        </div>
+        <div class="form-group">
+            <label>{:__('默认值')}:</label>
+            <input type="text" class="form-control" v-model="form.default"/>
+        </div>
+        <div class="checkbox">
+            <label><input type="checkbox" v-model="form.notnull"/> {:__('非空')}</label>
+        </div>
+        <div class="checkbox">
+            <label><input type="checkbox" v-model="form.pk"/> {:__('主键')}</label>
+        </div>
+        <div class="form-group">
+            <label>{:__('注释')}:</label>
+            <input type="text" class="form-control" v-model="form.comment"/>
+        </div>
+        <div class="dlg-actions">
+            <button type="button" class="btn btn-success" @click="submit()" :disabled="submitting">{:__('确定')}</button>
+            <button type="button" class="btn btn-default" @click="dlgVisible = false">{:__('取消')}</button>
+        </div>
+    </div>
+</div>
+<script src="__CDN__/assets/libs/jquery/dist/jquery.min.js"></script>
+<script src="__CDN__/assets/libs/fastadmin-layer/dist/layer.js"></script>
+<script src="__CDN__/assets/libs/vue/dist/vue.min.js"></script>
+<script type="text/javascript">
+    new Vue({
+        el: '#app',
+        data: {
+            table: '{$table}',
+            types: '{:implode(",", $typeList)}'.split(','),
+            fields: [],
+            loading: false,
+            submitting: false,
+            token: '',
+            dlgVisible: false,
+            dlgTitle: '',
+            form: {
+                isEdit: false,
+                oldname: '',
+                name: '',
+                type: 'varchar',
+                length: '',
+                default: '',
+                notnull: false,
+                pk: false,
+                comment: ''
+            }
+        },
+        computed: {
+            changelogUrl: function () {
+                return "{:url('platform/database/changelog')}" + '?table=' + encodeURIComponent(this.table);
+            }
+        },
+        mounted: function () {
+            this.token = $("input[name='__token__']").val();
+            this.load();
+        },
+        methods: {
+            load: function () {
+                var self = this;
+                this.loading = true;
+                $.ajax({
+                    url: "{:url('platform/database/field')}" + '?table=' + encodeURIComponent(this.table),
+                    dataType: 'json',
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    success: function (ret) {
+                        if (ret.code === 1 && ret.data && ret.data.list) {
+                            self.fields = ret.data.list;
+                        }
+                        self.loading = false;
+                    },
+                    error: function () {
+                        self.loading = false;
+                    }
+                });
+            },
+            resetForm: function () {
+                this.form = {
+                    isEdit: false, oldname: '', name: '', type: 'varchar',
+                    length: '', default: '', notnull: false, pk: false, comment: ''
+                };
+            },
+            openAdd: function () {
+                this.resetForm();
+                this.dlgTitle = '{:__('新增字段')}';
+                this.dlgVisible = true;
+            },
+            openEdit: function (f) {
+                var type = f.COLUMN_TYPE;
+                var length = '';
+                var m = String(type).match(/^([a-z]+)\(([0-9,]+)\)$/i);
+                if (m) {
+                    type = m[1];
+                    length = m[2];
+                }
+                this.form = {
+                    isEdit: true,
+                    oldname: f.COLUMN_NAME,
+                    name: f.COLUMN_NAME,
+                    type: type,
+                    length: length,
+                    default: f.COLUMN_DEFAULT === null ? '' : f.COLUMN_DEFAULT,
+                    notnull: f.IS_NULLABLE !== 'YES',
+                    pk: f.COLUMN_KEY === 'PRI',
+                    comment: f.COLUMN_COMMENT
+                };
+                this.dlgTitle = '{:__('编辑字段')} ' + f.COLUMN_NAME;
+                this.dlgVisible = true;
+            },
+            submit: function () {
+                var self = this;
+                var f = this.form;
+                if (!f.name) {
+                    layer.msg('{:__('请输入字段名')}', {icon: 2});
+                    return;
+                }
+                var data = {
+                    action: f.isEdit ? 'edit' : 'add',
+                    name: f.name,
+                    type: f.type,
+                    length: f.length,
+                    default: f.default,
+                    notnull: f.notnull ? 1 : 0,
+                    pk: f.pk ? 1 : 0,
+                    comment: f.comment,
+                    __token__: this.token
+                };
+                if (f.isEdit) {
+                    data.oldname = f.oldname;
+                }
+                this.submitting = true;
+                $.ajax({
+                    url: "{:url('platform/database/field')}" + '?table=' + encodeURIComponent(this.table),
+                    type: 'POST',
+                    data: data,
+                    dataType: 'json',
+                    success: function (ret, textStatus, xhr) {
+                        self.submitting = false;
+                        var nt = xhr.getResponseHeader('__token__') || (ret.data && (ret.data.__token__ || ret.data.token));
+                        if (nt) {
+                            self.token = nt;
+                            $("input[name='__token__']").val(nt);
+                        }
+                        if (ret.code === 1) {
+                            self.dlgVisible = false;
+                            layer.msg(ret.msg, {icon: 1});
+                            self.load();
+                        } else {
+                            layer.msg(ret.msg, {icon: 2});
+                        }
+                    },
+                    error: function () {
+                        self.submitting = false;
+                    }
+                });
+            },
+            del: function (f) {
+                var self = this;
+                layer.confirm('{:__('确定删除字段')} <code>' + f.COLUMN_NAME + '</code> ?', {icon: 3, title: '{:__('删除确认')}'}, function (index) {
+                    $.ajax({
+                        url: "{:url('platform/database/field')}" + '?table=' + encodeURIComponent(self.table),
+                        type: 'POST',
+                        data: {action: 'del', name: f.COLUMN_NAME, __token__: self.token},
+                        dataType: 'json',
+                        success: function (ret, textStatus, xhr) {
+                            var nt = xhr.getResponseHeader('__token__') || (ret.data && (ret.data.__token__ || ret.data.token));
+                            if (nt) {
+                                self.token = nt;
+                                $("input[name='__token__']").val(nt);
+                            }
+                            if (ret.code === 1) {
+                                layer.msg(ret.msg, {icon: 1});
+                                self.load();
+                            } else {
+                                layer.msg(ret.msg, {icon: 2});
+                            }
+                        }
+                    });
+                    layer.close(index);
+                });
+            }
+        }
+    });
+</script>
+</body>
+</html>

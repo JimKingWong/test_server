@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit">
+    <meta name="referrer" content="never">
+    <title>{:__('创建数据表')}</title>
+    <link rel="shortcut icon" href="__CDN__/assets/img/favicon.ico"/>
+    <link href="__CDN__/assets/css/backend.css" rel="stylesheet"/>
+    <link href="__CDN__/assets/libs/fastadmin-layer/dist/theme/default/layer.css" rel="stylesheet"/>
+</head>
+<body class="hold-transition skin-blue sidebar-mini fixed">
+{:token()}
+<div class="wrapper" id="app">
+    <div class="content-wrapper">
+        <section class="content-header">
+            <h1>{:__('创建数据表')}<small>{:__('设置表名与字段，创建后自动记录变动')}</small></h1>
+        </section>
+        <section class="content">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">{:__('表信息')}</h3>
+                            <div class="box-tools pull-right">
+                                <a href="{:url('platform/database/index')}" class="btn btn-default btn-sm">{:__('返回列表')}</a>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <form class="form-horizontal" role="form" @submit.prevent="submit">
+                                <div class="form-group">
+                                    <label class="control-label col-xs-12 col-sm-2">{:__('表名')}:</label>
+                                    <div class="col-xs-12 col-sm-6">
+                                        <input type="text" class="form-control" v-model.trim="table" placeholder="user_log"/>
+                                        <span class="help-block">{:__('小写字母、数字、下划线，不能以数字开头')}</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-xs-12 col-sm-2">{:__('表备注')}:</label>
+                                    <div class="col-xs-12 col-sm-6">
+                                        <input type="text" class="form-control" v-model.trim="comment" placeholder="{:__('用户操作日志表')}"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-xs-12 col-sm-2">{:__('字段')}:</label>
+                                    <div class="col-xs-12 col-sm-10">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th style="width:16%;">{:__('字段名')}</th>
+                                                <th style="width:14%;">{:__('类型')}</th>
+                                                <th style="width:12%;">{:__('长度')}</th>
+                                                <th style="width:12%;">{:__('默认值')}</th>
+                                                <th style="width:8%;">{:__('非空')}</th>
+                                                <th style="width:8%;">{:__('主键')}</th>
+                                                <th style="width:18%;">{:__('注释')}</th>
+                                                <th style="width:12%;">{:__('操作')}</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr v-for="(row, i) in rows" :key="i">
+                                                <td><input type="text" class="form-control input-sm" v-model.trim="row.name" placeholder="id"/></td>
+                                                <td>
+                                                    <select class="form-control input-sm" v-model="row.type">
+                                                        <option v-for="t in types" :value="t">{{ t }}</option>
+                                                    </select>
+                                                </td>
+                                                <td><input type="text" class="form-control input-sm" v-model="row.length" placeholder="11"/></td>
+                                                <td><input type="text" class="form-control input-sm" v-model="row.default"/></td>
+                                                <td class="text-center"><input type="checkbox" v-model="row.notnull"/></td>
+                                                <td class="text-center"><input type="checkbox" v-model="row.pk"/></td>
+                                                <td><input type="text" class="form-control input-sm" v-model="row.comment"/></td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-xs btn-danger" @click="delRow(i)"><i class="fa fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                        <button type="button" class="btn btn-sm btn-success" @click="addRow()"><i class="fa fa-plus"></i> {:__('添加字段')}</button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-xs-12 col-sm-2"></label>
+                                    <div class="col-xs-12 col-sm-6">
+                                        <button type="submit" class="btn btn-success btn-embossed" :disabled="submitting">{:__('创建')}</button>
+                                        <a href="{:url('platform/database/index')}" class="btn btn-default btn-embossed">{:__('返回列表')}</a>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+<script src="__CDN__/assets/libs/jquery/dist/jquery.min.js"></script>
+<script src="__CDN__/assets/libs/fastadmin-layer/dist/layer.js"></script>
+<script src="__CDN__/assets/libs/vue/dist/vue.min.js"></script>
+<script type="text/javascript">
+    new Vue({
+        el: '#app',
+        data: {
+            types: '{:implode(",", $typeList)}'.split(','),
+            table: '',
+            comment: '',
+            rows: [],
+            submitting: false
+        },
+        mounted: function () {
+            this.addRow('id', 'int', '10', true, true, 'ID');
+        },
+        methods: {
+            addRow: function (name, type, length, notnull, pk, comment) {
+                this.rows.push({
+                    name: name || '',
+                    type: type || 'varchar',
+                    length: length || '',
+                    default: '',
+                    notnull: !!notnull,
+                    pk: !!pk,
+                    comment: comment || ''
+                });
+            },
+            delRow: function (i) {
+                if (this.rows.length <= 1) {
+                    layer.msg('{:__('至少保留一个字段')}', {icon: 2});
+                    return;
+                }
+                this.rows.splice(i, 1);
+            },
+            submit: function () {
+                var self = this;
+                if (!this.table) {
+                    layer.msg('{:__('请输入表名')}', {icon: 2});
+                    return;
+                }
+                var fields = [];
+                var names = {};
+                for (var i = 0; i < this.rows.length; i++) {
+                    var r = this.rows[i];
+                    if (!r.name) {
+                        layer.msg('{:__('请填写第')} ' + (i + 1) + ' {:__('个字段名')}', {icon: 2});
+                        return;
+                    }
+                    if (names[r.name]) {
+                        layer.msg('{:__('字段名重复')}: ' + r.name, {icon: 2});
+                        return;
+                    }
+                    names[r.name] = true;
+                    fields.push({
+                        name: r.name,
+                        type: r.type,
+                        length: r.length,
+                        default: r.default,
+                        notnull: r.notnull ? 1 : 0,
+                        pk: r.pk ? 1 : 0,
+                        comment: r.comment
+                    });
+                }
+                this.submitting = true;
+                $.ajax({
+                    url: "{:url('platform/database/add')}",
+                    type: "POST",
+                    data: {
+                        table: this.table,
+                        comment: this.comment,
+                        fields: fields,
+                        __token__: $("input[name='__token__']").val()
+                    },
+                    dataType: "json",
+                    success: function (ret, textStatus, xhr) {
+                        self.submitting = false;
+                        var nt = xhr.getResponseHeader('__token__') || (ret.data && (ret.data.__token__ || ret.data.token));
+                        if (nt) {
+                            $("input[name='__token__']").val(nt);
+                        }
+                        if (ret.code === 1) {
+                            layer.msg(ret.msg, {icon: 1}, function () {
+                                location.href = "{:url('platform/database/field')}" + '?table=' + encodeURIComponent(self.table);
+                            });
+                        } else {
+                            layer.msg(ret.msg, {icon: 2});
+                        }
+                    },
+                    error: function () {
+                        self.submitting = false;
+                    }
+                });
+            }
+        }
+    });
+</script>
+</body>
+</html>
