@@ -3,19 +3,20 @@
 namespace app\admin\library\traits;
 
 use app\admin\library\Auth;
-use Exception;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
 use PhpOffice\PhpSpreadsheet\Reader\Xls;
 use PhpOffice\PhpSpreadsheet\Reader\Csv;
-use think\Db;
 use think\db\exception\BindParamException;
 use think\db\exception\DataNotFoundException;
 use think\db\exception\ModelNotFoundException;
 use think\exception\DbException;
+use think\response\Json;
+
+use think\Db;
+use Exception;
 use think\exception\PDOException;
 use think\exception\ValidateException;
-use think\response\Json;
 
 trait Backend
 {

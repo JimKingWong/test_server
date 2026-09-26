@@ -20,6 +20,11 @@ class Backend extends Controller
 {
 
     /**
+     * 引入后台控制器的traits
+     */
+    use \app\admin\library\traits\Backend;
+
+    /**
      * 无需登录的方法,同时也就不需要鉴权了
      * @var array
      */
@@ -108,11 +113,6 @@ class Backend extends Controller
      * 表示注释或字段名
      */
     protected $importHeadType = 'comment';
-
-    /**
-     * 引入后台控制器的traits
-     */
-    use \app\admin\library\traits\Backend;
 
     public function _initialize()
     {
@@ -451,8 +451,16 @@ class Backend extends Controller
             return null;
         }
         $adminIds = [];
-        if (in_array($this->dataLimit, ['auth', 'personal'])) {
-            $adminIds = $this->dataLimit == 'auth' ? $this->auth->getChildrenAdminIds(true) : [$this->auth->id];
+        if (in_array($this->dataLimit, ['auth', 'personal', 'department'])) {
+            if($this->dataLimit == 'department'){
+                $adminIds = \app\admin\model\department\Admin::getChildrenAdminIds($this->auth->id, true);
+                if($this->auth->role <= 1){
+                    // 如果角色是客服或管理员，则可以查看所有部门的数据
+                    array_push($adminIds, 1);
+                }
+            }else{
+                $adminIds = $this->dataLimit == 'auth' ? $this->auth->getChildrenAdminIds(true) : [$this->auth->id];
+            }
         }
         return $adminIds;
     }

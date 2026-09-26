@@ -123,6 +123,13 @@ class Admin extends Backend
             $this->token();
             $params = $this->request->post("row/a");
             if ($params) {
+                // 邀请码唯一验证
+                if (!empty($params['invite_code'])) {
+                    $exists = Db::name('admin')->where('invite_code', $params['invite_code'])->count();
+                    if ($exists) {
+                        $this->error('邀请码已存在，请更换');
+                    }
+                }
                 Db::startTrans();
                 try {
                     if (!Validate::is($params['password'], '\S{6,30}')) {
@@ -176,6 +183,13 @@ class Admin extends Backend
             $this->token();
             $params = $this->request->post("row/a");
             if ($params) {
+                // 邀请码唯一验证（排除自己）
+                if (!empty($params['invite_code'])) {
+                    $exists = Db::name('admin')->where('invite_code', $params['invite_code'])->where('id', '<>', $ids)->count();
+                    if ($exists) {
+                        $this->error('邀请码已存在，请更换');
+                    }
+                }
                 Db::startTrans();
                 try {
                     if ($params['password']) {

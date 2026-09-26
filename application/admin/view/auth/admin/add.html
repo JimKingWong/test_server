@@ -37,6 +37,48 @@
         </div>
     </div>
     <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">身份:</label>
+        <div class="col-xs-12 col-sm-8">
+            {:build_radios('row[role]', ['0'=>'管理员','1'=>'客服','2'=>'主管','3'=>'业务员'])}
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="invite_code" class="control-label col-xs-12 col-sm-2">邀请码:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input type="text" class="form-control" id="invite_code" name="row[invite_code]" value="" maxlength="6" minlength="6" data-rule="required;length(6)" placeholder="6位唯一邀请码" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="parent_id" class="control-label col-xs-12 col-sm-2">上级:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input type="number" class="form-control" id="parent_id" name="row[parent_id]" value="0" placeholder="上级管理员ID，0=无" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="total_recharge" class="control-label col-xs-12 col-sm-2">总充值:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input type="number" step="0.01" class="form-control" id="total_recharge" name="row[total_recharge]" value="0.00" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="total_withdraw" class="control-label col-xs-12 col-sm-2">总提现:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input type="number" step="0.01" class="form-control" id="total_withdraw" name="row[total_withdraw]" value="0.00" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="total_gift" class="control-label col-xs-12 col-sm-2">总赠送:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input type="number" step="0.01" class="form-control" id="total_gift" name="row[total_gift]" value="0.00" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="gift_quota" class="control-label col-xs-12 col-sm-2">赠送额度:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input type="number" step="0.01" class="form-control" id="gift_quota" name="row[gift_quota]" value="0.00" />
+        </div>
+    </div>
+    <div class="form-group">
         <label class="control-label col-xs-12 col-sm-2">{:__('Status')}:</label>
         <div class="col-xs-12 col-sm-8">
             {:build_radios('row[status]', ['normal'=>__('Normal'), 'hidden'=>__('Hidden')])}
